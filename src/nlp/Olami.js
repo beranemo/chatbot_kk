@@ -1,6 +1,8 @@
 const config = require('../../config')
 const axios = require('axios')
 const md5 = require('md5')
+const KKBOX = require('../api/KKBOX')
+
 
 class Olami {
   constructor(appKey = config.olami.appKey, appSecret = config.olami.appSectet, inputType = 1) {
@@ -47,9 +49,48 @@ class Olami {
       }
     }
 
+    
+    
+    async function handleMusicKKBOXType(semantic) {
+
+      function getKeyWord(semantic, dataType) {
+
+        function getSlotValueByName(slotName) {
+            return semantic.slots.filter(slot => slot.name === slotName)[0].value
+        }
+
+        switch (dataType) {
+            case 'artist':
+                return getSlotValueByName('artist_name')
+            case 'album':
+                return getSlotValueByName('album_name')
+            case 'track':
+                return getSlotValueByName('track_name')
+            case 'playlist':
+                return getSlotValueByName('keyword')
+        }
+      }
+
+      const dataType = semantic.modifier[0].split('_')[2]
+      const keyWord = getKeyWord(semantic, dataType)
+
+      const api = await KKBOX.init()
+      const data = await api
+          .searchFetcher
+          .setSearchCriteria(keyWord, dataType)
+          .fetchSearchResult()
+          .then(response => {
+              return response.data[dataType + 's'].data[0].url
+          })
+      return data
+    }
+    
+    
     switch (type) {
       case 'kkbox':
         return (data.length > 0) ? data[0].url : desc.result
+      case 'music_kkbox':
+        return handleMusicKKBOXType(semantic[0])
       case 'ds':
         return desc.result + '\n請用 /help 指令看看我能怎麼幫助您'
       case 'selection':
@@ -65,6 +106,7 @@ class Olami {
       default:
         return desc.result
     }
+    
   }
 }
 
