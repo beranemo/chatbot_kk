@@ -1,5 +1,8 @@
 const config = require('../../config')
-const {Auth, Api} = require('@kkbox/kkbox-js-sdk')
+const {
+  Auth,
+  Api
+} = require('@kkbox/kkbox-js-sdk')
 
 module.exports = class KKBOX {
   static init(clientId = config.kkbox.id, clientSecret = config.kkbox.secret) {
@@ -9,7 +12,7 @@ module.exports = class KKBOX {
         .clientCredentialsFlow
         .fetchAccessToken()
         .then(response => {
-            return response.data.access_token
+          return response.data.access_token
         })
       return new Api(accessToken)
     })()
